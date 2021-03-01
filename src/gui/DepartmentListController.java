@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.ResourceBundle;
 
 import application.Main;
+import db.DbIntegrityException;
 import gui.listeners.DataChangeListener;
 import gui.util.Alerts;
 import gui.util.Utils;
@@ -87,6 +88,7 @@ public class DepartmentListController implements Initializable, DataChangeListen
 		obsList = FXCollections.observableArrayList(list);
 		tableViewDepartment.setItems(obsList);
 		initEditButtons();
+		initRemoveButtons();
 	}
 
 	private void createDialogForm(Department obj, String absoluteName, Stage parentStage) {
@@ -161,7 +163,19 @@ public class DepartmentListController implements Initializable, DataChangeListen
 
 	private void removeEntity(Department obj) {
 		Optional<ButtonType> result = Alerts.showConfirmation("Confirmation", "Are you sure to delete");
-		
-		if(result.get())
+
+		if (result.get() == ButtonType.OK) {
+
+			if (service == null) {
+				throw new IllegalStateException("Service was null");
+			}
+			try {
+				service.remove(obj);
+				updateTableView();
+			} catch (DbIntegrityException e) {
+				Alerts.showAlert("Error removing object", null, e.getMessage(), AlertType.ERROR);
+			}
+
+		}
 	}
 }
